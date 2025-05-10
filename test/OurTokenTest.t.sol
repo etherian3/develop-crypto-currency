@@ -18,11 +18,27 @@ contract OurTokenTest is Test {
         deployer = new DeployOurToken();
         ourToken = deployer.run();
 
-        vm.prank(address(deployer));
+        vm.prank(msg.sender);
         ourToken.transfer(bob, STARTING_BALANCE);
     }
 
     function testBobBalance() public {
         assertEq(STARTING_BALANCE, ourToken.balanceOf(bob));
+    }
+
+    function testAllowanceWorks() public {
+        uint256 initialAlowance = 1000;
+
+        // Bob approves Alice to spend tokens on her behalf
+        vm.prank(bob);
+        ourToken.approve(alice, initialAlowance);
+
+        uint256 transferAmount = 500;
+
+        vm.prank(alice);
+        ourToken.transferFrom(bob, alice, transferAmount);
+
+        assertEq(ourToken.balanceOf(alice), transferAmount);
+        assertEq(ourToken.balanceOf(bob), STARTING_BALANCE - transferAmount);
     }
 }
